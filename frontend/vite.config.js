@@ -3,8 +3,9 @@ import { svelte } from '@sveltejs/vite-plugin-svelte'
 
 export default defineConfig({
   plugins: [svelte()],
+  base: '/mtg-tracker/',
   server: {
-    host: true,   // expose on LAN (like your other app)
+    host: true,
     port: 5173,
   },
 })
