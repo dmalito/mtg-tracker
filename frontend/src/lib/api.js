@@ -1,8 +1,6 @@
-const BASE = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
-console.log('API BASE:', BASE);
+const BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 async function req(method, path, body) {
-  console.log('API request:', method, path, body);  // add this
   const res = await fetch(BASE + path, {
     method,
     headers: { 'Content-Type': 'application/json' },
@@ -19,6 +17,7 @@ export const api = {
   // Games
   getGames:   ()     => req('GET',    '/games'),
   saveGame:   (game) => req('POST',   '/games', game),
+  updateGame: (game) => req('PUT',    `/games/${game.id}`, game),
   deleteGame: (id)   => req('DELETE', `/games/${id}`),
 
   // Decks

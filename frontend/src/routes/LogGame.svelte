@@ -1,10 +1,7 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
   import { decks, games, players, showToast, refreshPlayers } from '../lib/stores.js';
   import { api } from '../lib/api.js';
   import { deriveWinner } from '../lib/elo.js';
-
-  const dispatch = createEventDispatcher();
 
   const emptyPlayer = () => ({ name: '', deckName: '' });
   const resetForm = () => ({
@@ -80,7 +77,6 @@
       await refreshPlayers();
       showToast('Game saved!');
       form = resetForm();
-      //dispatch('saved');
     } catch (e) {
       showToast('Error saving game');
     } finally {

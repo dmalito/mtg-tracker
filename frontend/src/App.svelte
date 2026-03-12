@@ -45,7 +45,7 @@
     {#if $loading}
       <div class="loading">LOADING…</div>
     {:else}
-      {#if tab === 'log'}     <LogGame on:saved={() => tab = 'history'} /> {/if}
+      {#if tab === 'log'}     <LogGame /> {/if}
       {#if tab === 'history'} <History /> {/if}
       {#if tab === 'stats'}   <Stats />   {/if}
       {#if tab === 'players'} <Players /> {/if}
