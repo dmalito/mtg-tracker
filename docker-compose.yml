@@ -1,0 +1,9 @@
+services:
+  mtg-tracker:
+    build: .
+    container_name: mtg-tracker
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./data:/app/data

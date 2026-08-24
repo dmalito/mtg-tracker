@@ -198,15 +198,15 @@
   }
   .player-card:hover { border-color: var(--border-h); }
   .pc-left { display: flex; align-items: center; gap: .85rem; }
-  .pc-rank { font-family: 'IBM Plex Mono', monospace; font-size: .9rem; color: var(--muted); min-width: 1.5rem; text-align: center; }
+  .pc-rank { font-family: var(--font-mono); font-size: .9rem; color: var(--muted); min-width: 1.5rem; text-align: center; }
   .pc-rank.g { color: var(--gold); font-size: 1.1rem; }
   .pc-rank.s { color: #aaa; }
   .pc-rank.b { color: var(--cmd); }
-  .pc-name { font-family: 'IBM Plex Mono', monospace; font-size: .9rem; color: var(--text); }
+  .pc-name { font-family: var(--font-mono); font-size: .9rem; color: var(--text); }
   .pc-rec { font-size: .78rem; color: var(--muted); margin-top: .1rem; }
   .pc-right { text-align: right; }
-  .pc-elo { font-family: 'Fraunces', serif; font-size: 1.3rem; color: var(--gold); line-height: 1; }
-  .pc-wr { font-family: 'IBM Plex Mono', monospace; font-size: .7rem; color: var(--green); margin-top: .15rem; }
+  .pc-elo { font-family: var(--font-heading); font-size: 1.3rem; color: var(--gold); line-height: 1; }
+  .pc-wr { font-family: var(--font-mono); font-size: .7rem; color: var(--green); margin-top: .15rem; }
 
   /* Profile */
   .profile-header {
@@ -216,35 +216,35 @@
   }
   .back-btn { position: absolute; top: 1rem; left: 1rem; }
   .profile-name {
-    font-family: 'Fraunces', serif; font-size: clamp(1.2rem, 3vw, 1.8rem);
-    color: var(--gold); text-shadow: 0 0 30px rgba(184,134,59,.2);
+    font-family: var(--font-heading); font-size: clamp(1.2rem, 3vw, 1.8rem);
+    color: var(--gold); text-shadow: 0 0 30px rgba(252,183,24,.2);
     margin-top: .5rem;
   }
   .profile-elo {
-    font-family: 'Fraunces', serif; font-size: 2.8rem; color: var(--text);
+    font-family: var(--font-heading); font-size: 2.8rem; color: var(--text);
     line-height: 1; margin-top: .6rem;
   }
-  .profile-sub { font-family: 'IBM Plex Mono', monospace; font-size: .6rem; letter-spacing: .2em; color: var(--muted); text-transform: uppercase; margin-top: .2rem; }
+  .profile-sub { font-family: var(--font-mono); font-size: .6rem; letter-spacing: .2em; color: var(--muted); text-transform: uppercase; margin-top: .2rem; }
 
   .stats-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(100px,1fr)); gap: .8rem; margin-bottom: 1.25rem; }
   .stat-box { background: var(--s1); border: 1px solid var(--border); border-radius: 7px; padding: .85rem; text-align: center; }
-  .stat-num { font-family: 'Fraunces', serif; font-size: 1.7rem; color: var(--gold); line-height: 1; }
-  .stat-lbl { font-family: 'IBM Plex Mono', monospace; font-size: .52rem; letter-spacing: .14em; color: var(--muted); text-transform: uppercase; margin-top: .2rem; }
+  .stat-num { font-family: var(--font-heading); font-size: 1.7rem; color: var(--gold); line-height: 1; }
+  .stat-lbl { font-family: var(--font-mono); font-size: .52rem; letter-spacing: .14em; color: var(--muted); text-transform: uppercase; margin-top: .2rem; }
 
   /* Format stats */
   .fmt-row-list { display: flex; flex-direction: column; gap: .5rem; }
   .fmt-stat-row { display: flex; justify-content: space-between; align-items: center; padding: .4rem .6rem; background: var(--s2); border-radius: 4px; }
   .fmt-stat-nums { display: flex; gap: 1rem; align-items: center; }
-  .fmt-stat-wr { color: var(--green); font-family: 'IBM Plex Mono', monospace; font-size: .78rem; }
+  .fmt-stat-wr { color: var(--green); font-family: var(--font-mono); font-size: .78rem; }
   .fmt-stat-rec { color: var(--muted); font-size: .75rem; }
   .fmt-stat-total { color: var(--muted); font-size: .72rem; }
 
   /* Deck perf */
   .deck-perf-row { display: flex; justify-content: space-between; align-items: center; padding: .38rem .6rem; background: var(--s2); border-radius: 4px; margin-bottom: .28rem; }
-  .dp-name { font-family: 'IBM Plex Mono', monospace; font-size: .82rem; color: var(--gold); margin-right: .5rem; }
+  .dp-name { font-family: var(--font-mono); font-size: .82rem; color: var(--gold); margin-right: .5rem; }
   .dp-played { font-size: .72rem; color: var(--muted); }
   .dp-stats { display: flex; gap: .75rem; align-items: center; }
-  .dp-wr { color: var(--green); font-family: 'IBM Plex Mono', monospace; font-size: .75rem; }
+  .dp-wr { color: var(--green); font-family: var(--font-mono); font-size: .75rem; }
   .dp-rec { color: var(--muted); font-size: .72rem; }
 
   /* Recent games */
@@ -258,16 +258,16 @@
   .recent-row.loss { border-left-color: var(--red); }
   .rr-left { display: flex; align-items: center; gap: .75rem; }
   .rr-result {
-    font-family: 'IBM Plex Mono', monospace; font-size: .85rem; font-weight: 700;
+    font-family: var(--font-mono); font-size: .85rem; font-weight: 700;
     min-width: 1.2rem; text-align: center;
   }
   .win  .rr-result { color: var(--green); }
   .loss .rr-result { color: var(--red); }
-  .rr-date-fmt { font-family: 'IBM Plex Mono', monospace; font-size: .65rem; color: var(--muted); }
+  .rr-date-fmt { font-family: var(--font-mono); font-size: .65rem; color: var(--muted); }
   .rr-players { font-size: .82rem; color: var(--text); margin-top: .1rem; }
   .rr-deck { font-size: .75rem; color: var(--gold-d); font-style: italic; margin-top: .08rem; }
   .score-badge {
-    font-family: 'Fraunces', serif; font-size: .72rem;
+    font-family: var(--font-body); font-weight: 700; font-size: .72rem;
     background: var(--s3); border: 1px solid var(--border); border-radius: 4px;
     padding: .1rem .45rem; color: var(--text); white-space: nowrap;
   }

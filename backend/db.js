@@ -1,12 +1,22 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const fs = require('fs');
 
-const db = new sqlite3.Database(path.join(__dirname, 'mtg.db'), (err) => {
+// DATA_DIR lets the database live outside the app code, on a mounted
+// volume, so it survives container rebuilds/redeploys.
+const dataDir = process.env.DATA_DIR || __dirname;
+if (!fs.existsSync(dataDir)) {
+  fs.mkdirSync(dataDir, { recursive: true });
+}
+
+const dbPath = path.join(dataDir, 'mtg.db');
+
+const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     console.error('Failed to connect to database:', err);
     process.exit(1);
   }
-  console.log('Connected to SQLite database');
+  console.log(`Connected to SQLite database at ${dbPath}`);
 });
 
 db.serialize(() => {

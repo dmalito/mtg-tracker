@@ -298,17 +298,17 @@
   .game-card.editing { grid-template-columns: 1fr; border-color: var(--gold-d); }
 
   .gc-top { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; margin-bottom: .25rem; }
-  .gc-date { font-family: 'IBM Plex Mono', monospace; font-size: .58rem; color: var(--muted); letter-spacing: .1em; }
-  .bon-label { font-family: 'IBM Plex Mono', monospace; font-size: .54rem; color: var(--muted); letter-spacing: .1em; }
+  .gc-date { font-family: var(--font-mono); font-size: .58rem; color: var(--muted); letter-spacing: .1em; }
+  .bon-label { font-family: var(--font-mono); font-size: .54rem; color: var(--muted); letter-spacing: .1em; }
   .score-badge {
-    font-family: 'Fraunces', serif; font-size: .75rem;
+    font-family: var(--font-body); font-weight: 700; font-size: .75rem;
     background: var(--s2); border: 1px solid var(--border); border-radius: 4px;
     padding: .1rem .5rem; color: var(--text);
   }
-  .gc-winner { font-family: 'IBM Plex Mono', monospace; font-size: .9rem; color: var(--gold); }
-  .gc-draw { font-family: 'IBM Plex Mono', monospace; font-size: .9rem; color: var(--muted); }
+  .gc-winner { font-family: var(--font-mono); font-size: .9rem; color: var(--gold); }
+  .gc-draw { font-family: var(--font-mono); font-size: .9rem; color: var(--muted); }
   .gc-no-winner { color: var(--muted); font-style: italic; font-size: .82rem; }
-  .elo-up { color: var(--green); font-family: 'IBM Plex Mono', monospace; font-size: .62rem; margin-left: .4rem; }
+  .elo-up { color: var(--green); font-family: var(--font-mono); font-size: .62rem; margin-left: .4rem; }
   .gc-players { font-size: .82rem; color: var(--muted); margin-top: .18rem; }
   .deck-label { color: var(--gold-d); font-size: .76rem; }
   .gc-notes {
@@ -325,10 +325,10 @@
   .pill {
     flex: 1; background: var(--s2); border: 2px solid var(--border); border-radius: 6px;
     padding: .5rem .75rem; cursor: pointer; text-align: center; transition: all .2s;
-    font-family: 'IBM Plex Mono', monospace; color: var(--muted); font-size: .72rem; letter-spacing: .1em;
+    font-family: var(--font-mono); color: var(--muted); font-size: .72rem; letter-spacing: .1em;
   }
-  .pill.active-cmd { border-color: var(--cmd); color: var(--cmd); background: rgba(191,122,66,.08); }
-  .pill.active-pau { border-color: var(--pau); color: var(--pau); background: rgba(95,163,119,.08); }
+  .pill.active-cmd { border-color: var(--cmd); color: var(--cmd); background: rgba(198,113,57,.08); }
+  .pill.active-pau { border-color: var(--pau); color: var(--pau); background: rgba(122,138,94,.08); }
 
   .player-row {
     display: grid; grid-template-columns: 1fr 1fr auto;
@@ -343,17 +343,17 @@
     max-height: 140px; overflow-y: auto;
   }
   .suggestion-item { padding: .4rem .7rem; font-size: .88rem; cursor: pointer; transition: background .12s; }
-  .suggestion-item:hover { background: rgba(184,134,59,.08); color: var(--gold-l); }
+  .suggestion-item:hover { background: rgba(252,183,24,.08); color: var(--gold-l); }
 
-  .lbl-hint { font-family: 'Nunito Sans', sans-serif; font-size: .75rem; letter-spacing: 0; text-transform: none; color: var(--muted); font-style: italic; }
+  .lbl-hint { font-family: var(--font-body); font-size: .75rem; letter-spacing: 0; text-transform: none; color: var(--muted); font-style: italic; }
 
   .score-row { display: flex; align-items: center; gap: .65rem; margin-bottom: .4rem; }
-  .score-name { font-family: 'IBM Plex Mono', monospace; font-size: .78rem; min-width: 7rem; }
-  .score-input { width: 3.5rem !important; text-align: center; font-family: 'Fraunces', serif; font-size: 1.1rem; padding: .28rem .4rem; }
+  .score-name { font-family: var(--font-mono); font-size: .78rem; min-width: 7rem; }
+  .score-input { width: 3.5rem !important; text-align: center; font-family: var(--font-body); font-weight: 700; font-size: 1.1rem; padding: .28rem .4rem; }
   .score-label { color: var(--muted); font-size: .78rem; }
 
   .auto-winner {
-    font-family: 'IBM Plex Mono', monospace; font-size: .85rem; color: var(--gold);
+    font-family: var(--font-mono); font-size: .85rem; color: var(--gold);
     padding: .5rem .75rem; background: var(--s2); border: 1px solid var(--border); border-radius: 4px;
   }
   .draw-notice { color: var(--muted); border-color: var(--border); }

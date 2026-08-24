@@ -13,7 +13,14 @@ function recomputeAllElo(games) {
   [...games].reverse().forEach((g) => {
     const ps = JSON.parse(g.players);
     ps.forEach((p) => ep(p.name));
-    if (!g.winner) return;
+
+    if (!g.winner) {
+      // draw — adjust ELO for all players, no wins/losses
+      const names = ps.map(p => p.name);
+      const delta = computeEloDelta(null, null, players, true, names);
+      Object.entries(delta).forEach(([n, d]) => { ep(n); players[n].elo += d; });
+      return;
+    }
 
     const losers = ps.map((p) => p.name).filter((n) => n !== g.winner);
     ep(g.winner);
@@ -32,7 +39,21 @@ function recomputeAllElo(games) {
   return players;
 }
 
-function computeEloDelta(winner, losers, currentPlayers) {
+function computeEloDelta(winner, losers, currentPlayers, isDraw, allPlayers) {
+  if (isDraw) {
+    const delta = {};
+    allPlayers.forEach(name => {
+      const others = allPlayers.filter(n => n !== name);
+      let d = 0;
+      others.forEach(other => {
+        const rp = currentPlayers[name]?.elo ?? 1200;
+        const ro = currentPlayers[other]?.elo ?? 1200;
+        d += Math.round(K * (0.5 - expected(rp, ro)));
+      });
+      delta[name] = d;
+    });
+    return delta;
+  }
   const delta = { [winner]: 0 };
   losers.forEach((l) => {
     const rw = currentPlayers[winner]?.elo ?? 1200;
@@ -64,27 +85,29 @@ router.get('/', (req, res) => {
 
 // ── POST /api/games ───────────────────────────────────────────────────────────
 router.post('/', (req, res) => {
-  const { date, fmt, mode, winner, notes, players, scores } = req.body;
+  const { date, fmt, mode, winner, notes, players, scores, draw } = req.body;
   if (!players?.length) return res.status(400).json({ error: 'Players required' });
 
   db.all('SELECT * FROM games ORDER BY created_at ASC', (err, allGames) => {
     if (err) return res.status(500).json({ error: 'Database error' });
 
     const currentPlayers = recomputeAllElo(allGames);
+    const playerNames = players.map(p => p.name);
+    playerNames.forEach(n => { if (!currentPlayers[n]) currentPlayers[n] = { elo: 1200, wins: 0, losses: 0 }; });
+
     let eloDelta = {};
-    if (winner) {
-      const losers = players.map((p) => p.name).filter((n) => n !== winner);
-      players.forEach((p) => {
-        if (!currentPlayers[p.name]) currentPlayers[p.name] = { elo: 1200, wins: 0, losses: 0 };
-      });
-      eloDelta = computeEloDelta(winner, losers, currentPlayers);
+    if (draw) {
+      eloDelta = computeEloDelta(null, null, currentPlayers, true, playerNames);
+    } else if (winner) {
+      const losers = playerNames.filter(n => n !== winner);
+      eloDelta = computeEloDelta(winner, losers, currentPlayers, false, playerNames);
     }
 
     const sql = `INSERT INTO games (date, fmt, mode, winner, notes, players, scores, elo_delta)
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
 
     db.run(sql, [
-      date, fmt, mode || 'bo1', winner || '', notes || '',
+      date, fmt, mode || 'bo1', draw ? '' : (winner || ''), notes || '',
       JSON.stringify(players),
       scores ? JSON.stringify(scores) : null,
       JSON.stringify(eloDelta),
@@ -100,20 +123,20 @@ router.post('/', (req, res) => {
 
 // ── PUT /api/games/:id ───────────────────────────────────────────────────────
 router.put('/:id', (req, res) => {
-  const { date, fmt, mode, winner, notes, players, scores } = req.body;
+  const { date, fmt, mode, winner, notes, players, scores, draw } = req.body;
   if (!players?.length) return res.status(400).json({ error: 'Players required' });
 
-  // Recompute ELO for all games with this one updated
   db.all('SELECT * FROM games ORDER BY created_at ASC', (err, allGames) => {
     if (err) return res.status(500).json({ error: 'Database error' });
 
-    // Determine winner from scores if BoN
     const hasScores = scores && Object.values(scores).some(v => v !== '' && v !== undefined && v !== null);
-    const derivedWinner = hasScores
-      ? players
-          .filter(p => scores[p.name] !== '' && scores[p.name] !== undefined)
-          .sort((a, b) => Number(scores[b.name]) - Number(scores[a.name]))[0]?.name ?? winner ?? ''
-      : winner ?? '';
+    const derivedWinner = draw
+      ? ''
+      : hasScores
+        ? players
+            .filter(p => scores[p.name] !== '' && scores[p.name] !== undefined)
+            .sort((a, b) => Number(scores[b.name]) - Number(scores[a.name]))[0]?.name ?? winner ?? ''
+        : winner ?? '';
 
     const sql = `UPDATE games SET date=?, fmt=?, mode=?, winner=?, notes=?, players=?, scores=? WHERE id=?`;
     db.run(sql, [
@@ -135,13 +158,16 @@ router.put('/:id', (req, res) => {
           const ps = JSON.parse(g.players);
           ps.forEach((p) => ep(p.name));
           if (!g.winner) {
-            db.run('UPDATE games SET elo_delta = ? WHERE id = ?', ['{}', g.id]);
+            const names = ps.map(p => p.name);
+            const delta = computeEloDelta(null, null, playerMap, true, names);
+            db.run('UPDATE games SET elo_delta = ? WHERE id = ?', [JSON.stringify(delta), g.id]);
+            Object.entries(delta).forEach(([n, d]) => { ep(n); playerMap[n].elo += d; });
             return;
           }
           const losers = ps.map((p) => p.name).filter((n) => n !== g.winner);
           ep(g.winner);
           losers.forEach((l) => ep(l));
-          const delta = computeEloDelta(g.winner, losers, playerMap);
+          const delta = computeEloDelta(g.winner, losers, playerMap, false, ps.map(p => p.name));
           db.run('UPDATE games SET elo_delta = ? WHERE id = ?', [JSON.stringify(delta), g.id]);
           playerMap[g.winner].wins++;
           losers.forEach((l) => playerMap[l].losses++);
@@ -173,13 +199,16 @@ router.delete('/:id', (req, res) => {
         const ps = JSON.parse(g.players);
         ps.forEach((p) => ep(p.name));
         if (!g.winner) {
-          db.run('UPDATE games SET elo_delta = ? WHERE id = ?', ['{}', g.id]);
+          const names = ps.map(p => p.name);
+          const delta = computeEloDelta(null, null, players, true, names);
+          db.run('UPDATE games SET elo_delta = ? WHERE id = ?', [JSON.stringify(delta), g.id]);
+          Object.entries(delta).forEach(([n, d]) => { ep(n); players[n].elo += d; });
           return;
         }
         const losers = ps.map((p) => p.name).filter((n) => n !== g.winner);
         ep(g.winner);
         losers.forEach((l) => ep(l));
-        const delta = computeEloDelta(g.winner, losers, players);
+        const delta = computeEloDelta(g.winner, losers, players, false, ps.map(p => p.name));
         db.run('UPDATE games SET elo_delta = ? WHERE id = ?', [JSON.stringify(delta), g.id]);
 
         players[g.winner].wins++;
