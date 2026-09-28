@@ -1,8 +1,9 @@
 # MTG Tracker — Docker deployment
 
-Single container: Express serves both the built Svelte frontend and the API,
-both mounted under `/mtg-tracker` (matching the Vite `base` and
-`VITE_API_URL` that were already set in `frontend/.env`).
+Single container: Express serves both the built Svelte frontend and the API
+at the root of port 5001. The frontend uses only relative URLs (Vite
+`base: './'`, API base `api`), so the same build also works behind Apache at
+any path prefix, e.g. `http://home-server/mtg-tracker/`.
 
 ## 1. Deploy
 
@@ -13,9 +14,11 @@ docker compose up -d --build
 
 This builds the frontend in a throwaway stage, then runs the Express server
 on port 5001, serving:
-- `http://localhost:5001/mtg-tracker/`        → app
-- `http://localhost:5001/mtg-tracker/api/...` → API
-- `http://localhost:5001/mtg-tracker/api/health` → `{"ok":true}`
+- `http://localhost:5001/`           → app
+- `http://localhost:5001/api/...`    → API
+- `http://localhost:5001/api/health` → `{"ok":true}`
+
+Old `/mtg-tracker/...` URLs on this port redirect to the root.
 
 Your existing game/deck/player data (`data/mtg.db`) is already included in
 this bundle and is bind-mounted into the container, so it'll be there from
@@ -24,15 +27,14 @@ survive `docker compose up -d --build` (no volume, no data loss).
 
 ## 2. Apache — proxy it in
 
-Because the frontend's asset paths are already baked with the `/mtg-tracker/`
-prefix (`vite.config.js` → `base: '/mtg-tracker/'`), a plain proxy pass is
-enough — no `mod_proxy_html` URL rewriting needed here, unlike Clash of
-Saints. Add this to `testing.conf` (inside the `<VirtualHost>` block,
-alongside the Clash of Saints proxy lines):
+Because every URL the frontend uses is relative, a plain prefix-stripping
+proxy pass is enough — no `mod_proxy_html` URL rewriting, and nothing in the
+build knows the prefix. The homeserver's `apps.conf` has:
 
 ```apache
-ProxyPass        /mtg-tracker/ http://localhost:5001/mtg-tracker/
-ProxyPassReverse /mtg-tracker/ http://localhost:5001/mtg-tracker/
+RedirectMatch ^/mtg-tracker$ /mtg-tracker/
+ProxyPass        /mtg-tracker/ http://127.0.0.1:5001/
+ProxyPassReverse /mtg-tracker/ http://127.0.0.1:5001/
 ```
 
 Then:
@@ -42,8 +44,8 @@ sudo apache2ctl configtest
 sudo systemctl reload apache2
 ```
 
-Visit `http://<your-host>:8090/mtg-tracker/` (or through the Cloudflare
-tunnel, same path).
+Visit `http://home-server/mtg-tracker/`. The same lines work in any other
+vhost (e.g. `testing.conf` on :8090) at whatever prefix you like.
 
 ## 3. Wire it into the gioco-immaginazione homepage
 
@@ -58,10 +60,8 @@ that — it's just an outbound `<a href="/mtg-tracker/">`.
   the app folder if unset) so the database can live on a mounted volume
   instead of inside the image.
 - `backend/server.js` — now also serves the built frontend as static
-  files under `/mtg-tracker`, and mounts the API under
-  `/mtg-tracker/api/*` instead of bare `/api/*`, so one process/port can
-  serve everything Apache proxies. Also redirects `/` and `/mtg-tracker`
-  (no trailing slash) to `/mtg-tracker/`.
+  files, next to the API under `/api/*`, so one process/port serves
+  everything Apache proxies.
 - Everything else (ELO engine, routes, all Svelte components/styling) is
   untouched — it was already solid.
 

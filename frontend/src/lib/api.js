@@ -1,4 +1,6 @@
-const BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+// Relative by default ('api/games'), so the API is found next to the page
+// wherever it's mounted. Dev overrides it in .env.development.
+const BASE = import.meta.env.VITE_API_URL || 'api';
 
 async function req(method, path, body) {
   const res = await fetch(BASE + path, {

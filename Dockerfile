@@ -6,8 +6,8 @@ COPY frontend/package*.json ./
 RUN npm ci
 
 COPY frontend/ ./
-# .env (VITE_API_URL=/mtg-tracker/api) and vite.config.js's base:'/mtg-tracker/'
-# are baked into the build output here.
+# Relative asset and API URLs (vite base './', API base 'api') are baked into
+# the build here, so it works at / and behind Apache at /mtg-tracker/.
 RUN npm run build
 
 # ── Stage 2: runtime — Express serves the API and the built frontend ───────
@@ -26,7 +26,7 @@ RUN npm ci --omit=dev
 COPY backend/db.js backend/server.js ./
 COPY backend/routes/ ./routes/
 
-# Built frontend assets, served statically by Express under /mtg-tracker
+# Built frontend assets, served statically by Express at /
 COPY --from=frontend-build /app/frontend/dist ./public
 
 # Data directory for the sqlite db — expected to be bind-mounted so it
