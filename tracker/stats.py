@@ -133,12 +133,12 @@ def sparkline(values, width=90, height=24):
         f'<polyline points="{pts}"/></svg>')
 
 
-def line_chart(lines, width=640, height=220, label="Rating over time"):
+def line_chart(lines, width=760, height=230, label="Rating over time"):
     """lines: [{"name", "values", "cls"}]; x is the game number."""
     lines = [ln for ln in lines if len(ln["values"]) >= 2]
     if not lines:
         return Markup('<p class="muted">Not enough games for a chart yet.</p>')
-    left, right, top, bottom = 40, width - 10, 10, height - 24
+    left, right, top, bottom = 64, width - 12, 12, height - 34
     allv = [v for ln in lines for v in ln["values"]] + [START]
     y, lo, hi = _scale(allv, top, bottom, pad=0.08)
     longest = max(len(ln["values"]) for ln in lines)
@@ -152,11 +152,11 @@ def line_chart(lines, width=640, height=220, label="Rating over time"):
     while v < hi:
         cls = "grid start" if v == START else "grid"
         parts.append(f'<line class="{cls}" x1="{left}" x2="{right}" y1="{y(v):.1f}" y2="{y(v):.1f}"/>')
-        parts.append(f'<text class="axis" x="{left - 6}" y="{y(v) + 4:.1f}" text-anchor="end">{v}</text>')
+        parts.append(f'<text class="axis" x="{left - 8}" y="{y(v):.1f}" dy=".35em" text-anchor="end">{v}</text>')
         v += grid
     parts.append(f'<text class="axis" x="{left}" y="{height - 6}">start</text>')
     parts.append(f'<text class="axis" x="{right}" y="{height - 6}" text-anchor="end">'
-                 f'game {longest - 1}</text>')
+                 f'{longest - 1} game{"s" if longest != 2 else ""}</text>')
     for ln in lines:
         pts = " ".join(f"{left + i * step:.1f},{y(v):.1f}" for i, v in enumerate(ln["values"]))
         parts.append(f'<polyline class="line {escape(ln.get("cls", ""))}" points="{pts}">'

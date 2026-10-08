@@ -1,9 +1,13 @@
 services:
   mtg-tracker:
     build: .
+    image: mtg-tracker
     container_name: mtg-tracker
-    restart: unless-stopped
     ports:
       - "5001:5001"
     volumes:
+      # tracker.db and downloaded card art; outside the image so rebuilds keep them.
       - ./data:/app/data
+    # Same user as the host files, so data/ stays editable by hand.
+    user: "1000:1000"
+    restart: unless-stopped

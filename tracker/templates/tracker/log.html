@@ -58,5 +58,5 @@
 {% endblock %}
 {% block scripts %}
 <script id="log-data" type="application/json">{{ data|tojson }}</script>
-<script src="{{ url_for('tracker.static', filename='js/log.js') }}"></script>
+<script src="{{ url_for('tracker.static', filename='js/log.js') }}" defer></script>
 {% endblock %}

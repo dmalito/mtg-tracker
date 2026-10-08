@@ -1,9 +1,13 @@
 """Import the old Svelte/Express database (mtg.db) into tracker.db.
 
-    python3 tools/import_legacy.py [OLD_DB] [NEW_DB]
+    python3 tools/import_legacy.py [--if-new] [OLD_DB] [NEW_DB]
 
-Defaults: data/mtg.db -> data/tracker.db. The old file is opened read-only
-and left untouched. Refuses to run if the new database already has games.
+Defaults: data/mtg.db -> data/tracker.db. With --if-new (what the container
+runs at start) it quietly does nothing unless the old database exists and
+the new one doesn't, so the first start after upgrading imports once.
+
+The old file is opened read-only and left untouched. Refuses to run if the
+new database already has games.
 
 Old games kept players as JSON names with an optional deck name, the winner
 as a name ('' = draw), and best-of-N scores as {"name": "games won"} (a
@@ -11,6 +15,7 @@ missing name means 0). Old decks had a free-text owner, which becomes a
 player.
 """
 import json
+import os
 import sqlite3
 import sys
 from pathlib import Path
@@ -69,9 +74,14 @@ def migrate(old_path, new_path):
 
 
 def main():
-    root = Path(__file__).resolve().parent.parent
-    old_path = Path(sys.argv[1]) if len(sys.argv) > 1 else root / "data" / "mtg.db"
-    new_path = Path(sys.argv[2]) if len(sys.argv) > 2 else root / "data" / "tracker.db"
+    args = sys.argv[1:]
+    if_new = "--if-new" in args
+    args = [a for a in args if a != "--if-new"]
+    data = Path(os.environ.get("DATA_DIR") or Path(__file__).resolve().parent.parent / "data")
+    old_path = Path(args[0]) if args else data / "mtg.db"
+    new_path = Path(args[1]) if len(args) > 1 else data / "tracker.db"
+    if if_new and (new_path.exists() or not old_path.exists()):
+        return
     conn = migrate(old_path, new_path)
     count = lambda t: conn.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]  # noqa: E731
     print(f"Imported into {new_path}: {count('games')} games, {count('decks')} decks, "

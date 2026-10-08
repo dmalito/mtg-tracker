@@ -211,7 +211,7 @@ def deck_form(did=None):
                           art_file=scryfall.download_art(card, art_dir()),
                           art_artist=card["artist"])
             if values["colors"] == "[]":
-                values["colors"] = json.dumps(card["colors"] or ["C"])
+                values["colors"] = json.dumps([c for c in db.COLORS if c in card["colors"]] or ["C"])
         except scryfall.NotFound:
             notice = f"Couldn't find a card called “{values['key_card']}” on Scryfall."
         except Exception:  # network trouble: keep the deck, skip the art
