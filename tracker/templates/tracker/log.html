@@ -1,0 +1,62 @@
+{% extends "tracker/base.html" %}
+{% block title %}{{ 'Edit game' if data.game else 'Log game' }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>{{ 'Edit game' if data.game else 'Log a game' }}</h1>
+  {% if not data.game and data.last %}
+  <button type="button" class="btn btn-ghost" id="rematch">↻ Rematch last game</button>
+  {% endif %}
+</div>
+
+<form id="log-form" class="log" novalidate>
+  <div class="panel log-meta">
+    <div class="seg" role="radiogroup" aria-label="Format" id="fmt">
+      {% for f, label in FORMATS.items() %}
+      <label><input type="radio" name="fmt" value="{{ f }}"><span>{{ label }}</span></label>
+      {% endfor %}
+    </div>
+    <div class="seg" role="radiogroup" aria-label="Kind of game" id="mode">
+      <label><input type="radio" name="mode" value="bo1"><span>Single game</span></label>
+      <label><input type="radio" name="mode" value="bon"><span>Match (Bo3/Bo5)</span></label>
+    </div>
+    <label class="field date-field">
+      <span class="field-label">Date</span>
+      <input type="date" name="date" required>
+    </label>
+  </div>
+
+  <section class="panel">
+    <h2 class="panel-title">Players</h2>
+    <div class="quick-players" id="quick-players" aria-label="Add a known player"></div>
+    <ol class="seat-editor" id="seats"></ol>
+    <button type="button" class="btn btn-ghost" id="add-seat">+ Add player</button>
+  </section>
+
+  <section class="panel" id="result-panel">
+    <h2 class="panel-title">Result</h2>
+    <p class="field-hint" id="result-hint"></p>
+    <div id="result"></div>
+    <label class="check" id="draw-wrap"><input type="checkbox" id="draw"> It was a draw</label>
+  </section>
+
+  <section class="panel">
+    <label class="field">
+      <span class="field-label">Notes <span class="muted">(optional)</span></span>
+      <textarea name="notes" rows="2" maxlength="2000" placeholder="Turn 4 kill, mulligan to five…"></textarea>
+    </label>
+  </section>
+
+  <p class="error" id="form-error" role="alert" hidden></p>
+  <div class="form-actions sticky-actions">
+    <button class="btn btn-primary btn-lg" id="save">{{ 'Save changes' if data.game else 'Save game' }}</button>
+    {% if data.game %}
+    <a class="btn btn-ghost" href="{{ url_for('tracker.history', _anchor='g' ~ data.game.id) }}">Cancel</a>
+    <button type="button" class="btn btn-danger" id="delete">Delete game</button>
+    {% endif %}
+  </div>
+</form>
+{% endblock %}
+{% block scripts %}
+<script id="log-data" type="application/json">{{ data|tojson }}</script>
+<script src="{{ url_for('tracker.static', filename='js/log.js') }}"></script>
+{% endblock %}

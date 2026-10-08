@@ -1,28 +1,14 @@
-# Dependencies
-backend/node_modules/
-frontend/node_modules/
- 
-# Database — never commit, keep local copy safe
-backend/mtg.db
-backend/mtg.db-shm
-backend/mtg.db-wal
- 
-# Frontend build output
-frontend/dist/
- 
-# Environment files (may contain secrets)
-frontend/.env
-frontend/.env.local
- 
-# Logs
-*.log
-npm-debug.log*
- 
-# OS files
+# Live data: the database and downloaded card art (data/mtg.db is the
+# pre-2.0 database, kept in git as the import source and backup).
+data/*
+!data/mtg.db
+
+__pycache__/
+*.pyc
+.venv/
+
+# OS / editor
 .DS_Store
 Thumbs.db
- 
-# Editor
 .vscode/
 .idea/
- 

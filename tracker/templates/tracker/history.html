@@ -1,0 +1,44 @@
+{% extends "tracker/base.html" %}
+{% from "tracker/_macros.html" import game_card with context %}
+{% block title %}History{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>History</h1>
+  <form class="filters" method="get" action="{{ url_for('tracker.history') }}">
+    <label><span class="sr-only">Format</span>
+      <select name="fmt" onchange="this.form.submit()">
+        <option value="">All formats</option>
+        {% for f, label in FORMATS.items() %}<option value="{{ f }}" {% if f == fmt %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </label>
+    <label><span class="sr-only">Player</span>
+      <select name="player" onchange="this.form.submit()">
+        <option value="">All players</option>
+        {% for p in players %}<option value="{{ p.id }}" {% if p.id == player %}selected{% endif %}>{{ p.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label><span class="sr-only">Deck</span>
+      <select name="deck" onchange="this.form.submit()">
+        <option value="">All decks</option>
+        {% for d in decks %}<option value="{{ d.id }}" {% if d.id == deck %}selected{% endif %}>{{ d.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <noscript><button class="btn">Filter</button></noscript>
+  </form>
+</div>
+
+{% if games %}
+<p class="muted">{{ games|length }} game{{ 's' if games|length != 1 }}</p>
+<div class="games">
+  {% set ns = namespace(month='') %}
+  {% for g in games %}
+    {% if g.date[:7] != ns.month %}{% set ns.month = g.date[:7] %}
+    <h2 class="month">{{ g.date|monthname }}</h2>
+    {% endif %}
+    {{ game_card(g, show_fmt=not fmt) }}
+  {% endfor %}
+</div>
+{% else %}
+<section class="panel empty"><p>No games match.</p></section>
+{% endif %}
+{% endblock %}

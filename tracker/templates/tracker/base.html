@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en"{% if theme %} data-theme="{{ theme }}"{% endif %}>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{% endblock %}{% if self.title() %} · {% endif %}MTG Tracker</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('tracker.static', filename='img/favicon-32.png') }}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('tracker.static', filename='img/favicon-180.png') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="{{ url_for('tracker.static', filename='css/tracker.css') }}">
+  <script>window.APP_ROOT = {{ root|tojson }};</script>
+  <script src="{{ url_for('tracker.static', filename='js/common.js') }}" defer></script>
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="{{ root }}">
+      <span class="brand-pips" aria-hidden="true">{% for c in "WUBRG" %}<i class="pip pip-{{ c }}"></i>{% endfor %}</span>
+      <span class="brand-name">MTG Tracker</span>
+    </a>
+    <nav class="mainnav" aria-label="Main">
+      {% set ep = request.endpoint %}
+      <a href="{{ url_for('tracker.home') }}" {% if ep == 'tracker.home' %}aria-current="page"{% endif %}>Standings</a>
+      <a href="{{ url_for('tracker.history') }}" {% if ep == 'tracker.history' %}aria-current="page"{% endif %}>History</a>
+      <a href="{{ url_for('tracker.players') }}" {% if ep in ('tracker.players', 'tracker.player') %}aria-current="page"{% endif %}>Players</a>
+      <a href="{{ url_for('tracker.decks') }}" {% if ep and ep.startswith('tracker.deck') %}aria-current="page"{% endif %}>Decks</a>
+      <a href="{{ url_for('tracker.matchups') }}" {% if ep == 'tracker.matchups' %}aria-current="page"{% endif %}>Matchups</a>
+    </nav>
+    <div class="topbar-end">
+      <button type="button" class="icon-btn" id="theme-toggle" title="Switch light / dark" aria-label="Switch light or dark theme">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.39 5.39 0 0 1-4.4 2.26 5.4 5.4 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg>
+      </button>
+      {% if can_edit and request.endpoint not in ('tracker.log', 'tracker.edit_game') %}
+      <a class="btn btn-primary log-btn" href="{{ url_for('tracker.log') }}">+ Log game</a>
+      {% endif %}
+    </div>
+  </header>
+
+  <main class="page">
+    {% block content %}{% endblock %}
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

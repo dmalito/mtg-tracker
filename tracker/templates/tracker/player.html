@@ -1,0 +1,85 @@
+{% extends "tracker/base.html" %}
+{% from "tracker/_macros.html" import game_card, record, fmt_badge with context %}
+{% block title %}{{ me.name }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div class="hero-name">
+    <span class="avatar avatar-lg" aria-hidden="true">{{ me.name[:1]|upper }}</span>
+    <h1>{{ me.name }}</h1>
+  </div>
+  {% if can_edit %}
+  <details class="menu">
+    <summary class="btn btn-ghost">Manage</summary>
+    <div class="menu-body">
+      <form method="post" action="{{ url_for('tracker.rename_player', pid=me.id) }}" class="inline-form">
+        <label>Rename <input name="name" value="{{ me.name }}" required maxlength="60"></label>
+        <button class="btn">Save</button>
+      </form>
+      {% if not sections %}
+      <form method="post" action="{{ url_for('tracker.delete_player', pid=me.id) }}" data-confirm="Delete {{ me.name }}?">
+        <button class="btn btn-danger">Delete player</button>
+      </form>
+      {% endif %}
+    </div>
+  </details>
+  {% endif %}
+</div>
+
+{% for s in sections %}
+<section class="fmt-section">
+  <h2 class="section-title">{{ fmt_badge(s.fmt) }}</h2>
+  <div class="stat-row">
+    <div class="stat"><span class="stat-label">Rating</span><span class="stat-value">{{ s.entry.rating|rating }}</span></div>
+    <div class="stat"><span class="stat-label">Record</span><span class="stat-value">{{ record(s.entry) }}</span></div>
+    <div class="stat"><span class="stat-label">Win rate</span><span class="stat-value">{{ s.entry.win_pct }}%</span></div>
+    <div class="stat"><span class="stat-label">Peak</span><span class="stat-value">{{ s.entry.series|max|rating }}</span></div>
+  </div>
+  <div class="panel">
+    <h3 class="panel-title">Rating over time</h3>
+    {{ s.chart }}
+  </div>
+  <div class="grid-2">
+    <div class="panel">
+      <h3 class="panel-title">Head to head</h3>
+      <table class="board">
+        <thead><tr><th>Opponent</th><th class="num">Record</th><th class="num">Score</th></tr></thead>
+        <tbody>
+        {% for o in s.opponents %}
+          <tr>
+            <td><a href="{{ url_for('tracker.player', pid=o.id) }}">{{ o.name }}</a></td>
+            <td class="num">{{ record(o) }}</td>
+            <td class="num"><span class="pct" style="--p: {{ o.pct }}">{{ o.pct }}%</span></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="panel">
+      <h3 class="panel-title">Decks played</h3>
+      <table class="board">
+        <thead><tr><th>Deck</th><th class="num">Games</th><th class="num">Record</th></tr></thead>
+        <tbody>
+        {% for d in s.decks %}
+          <tr>
+            <td>{% if d.id %}<a href="{{ url_for('tracker.deck', did=d.id) }}">{{ d.name }}</a>{% else %}<span class="muted">{{ d.name }}</span>{% endif %}</td>
+            <td class="num">{{ d.games }}</td>
+            <td class="num">{{ record(d) }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% else %}
+<section class="panel empty"><p>{{ me.name }} hasn't played yet.</p></section>
+{% endfor %}
+
+{% if recent %}
+<section>
+  <h2 class="section-title">Recent games</h2>
+  <div class="games">{% for g in recent %}{{ game_card(g) }}{% endfor %}</div>
+  <p><a href="{{ url_for('tracker.history', player=me.id) }}">All of {{ me.name }}'s games →</a></p>
+</section>
+{% endif %}
+{% endblock %}

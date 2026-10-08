@@ -1,0 +1,58 @@
+{% extends "tracker/base.html" %}
+{% from "tracker/_macros.html" import fmt_tabs with context %}
+{% block title %}Matchups{% endblock %}
+
+{% macro grid(entries, cells, endpoint, arg) %}
+<div class="matrix-wrap">
+  <table class="matrix">
+    <thead>
+      <tr><th class="corner"><span class="sr-only">Row vs column</span></th>
+        {% for c in entries %}<th scope="col" class="col-head"><span>{{ c.name }}</span></th>{% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in entries %}
+      <tr>
+        <th scope="row"><a href="{{ url_for(endpoint, **{arg: r.id}) }}">{{ r.name }}</a></th>
+        {% for c in entries %}
+          {% set cell = cells.get((r.id, c.id)) %}
+          {% if r.id == c.id %}<td class="self"></td>
+          {% elif cell %}<td class="hit" style="--p: {{ cell.pct }}" title="{{ r.name }} vs {{ c.name }}: {{ cell.W }}–{{ cell.L }}{% if cell.D %}–{{ cell.D }}{% endif %}"><b>{{ cell.W }}–{{ cell.L }}</b>{% if cell.D %}<small>{{ cell.D }}d</small>{% endif %}</td>
+          {% else %}<td class="none">·</td>{% endif %}
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endmacro %}
+
+{% block content %}
+<div class="page-head">
+  <h1>Matchups</h1>
+  {{ fmt_tabs('tracker.matchups', fmt, formats) }}
+</div>
+
+{% if not players %}
+<section class="panel empty"><p>No {{ FORMATS[fmt] }} games yet.</p></section>
+{% else %}
+<section class="panel">
+  <h2 class="panel-title">Ratings over time</h2>
+  {{ chart }}
+  <ul class="legend">{% for e in players[:6] %}<li><i class="swatch c{{ loop.index0 }}"></i>{{ e.name }}</li>{% endfor %}</ul>
+</section>
+
+<section class="panel">
+  <h2 class="panel-title">Players <span class="muted">· row’s record against column</span></h2>
+  {{ grid(players, player_cells, 'tracker.player', 'pid') }}
+</section>
+
+{% if decks %}
+<section class="panel">
+  <h2 class="panel-title">Decks <span class="muted">· row’s record against column</span></h2>
+  {{ grid(decks, deck_cells, 'tracker.deck', 'did') }}
+</section>
+{% endif %}
+<p class="muted small">In a multiplayer pod, every pair of players counts as a meeting: finishing ahead of someone is a win against them.</p>
+{% endif %}
+{% endblock %}

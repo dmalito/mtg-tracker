@@ -1,0 +1,87 @@
+{% extends "tracker/base.html" %}
+{% block title %}{{ 'Edit ' ~ deck.name if deck and deck.id else 'New deck' }}{% endblock %}
+{% block content %}
+{% set f = form or deck or {} %}
+{% set chosen = (form.colors if form else (deck.colors if deck else [])) or [] %}
+<div class="page-head"><h1>{{ 'Edit deck' if deck and deck.id else 'New deck' }}</h1></div>
+
+<form class="panel form" method="post">
+  {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+  <label class="field">
+    <span class="field-label">Name</span>
+    <input name="name" value="{{ f.name or '' }}" required maxlength="80" autocomplete="off">
+  </label>
+
+  <div class="field-row">
+    <label class="field">
+      <span class="field-label">Format</span>
+      <select name="fmt">
+        {% for v, label in DECK_FORMATS.items() %}<option value="{{ v }}" {% if (f.fmt or 'pau') == v %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </label>
+    <label class="field">
+      <span class="field-label">Owner</span>
+      <input name="owner" value="{{ f.owner or '' }}" list="player-names" maxlength="60" autocomplete="off" placeholder="Optional">
+      <datalist id="player-names">{% for p in players %}<option value="{{ p.name }}">{% endfor %}</datalist>
+    </label>
+  </div>
+
+  <fieldset class="field">
+    <legend class="field-label">Colours</legend>
+    <div class="mana-picker">
+      {% for c in COLORS %}
+      <label class="mana-toggle" title="{{ {'W':'White','U':'Blue','B':'Black','R':'Red','G':'Green','C':'Colorless'}[c] }}">
+        <input type="checkbox" name="colors" value="{{ c }}" {% if c in chosen %}checked{% endif %}>
+        <i class="pip pip-{{ c }} pip-lg"></i>
+      </label>
+      {% endfor %}
+    </div>
+  </fieldset>
+
+  <label class="field">
+    <span class="field-label">Commander / key card <span class="muted">(for the art, from Scryfall)</span></span>
+    <input name="key_card" id="key-card" value="{{ f.key_card or '' }}" list="card-names" maxlength="150" autocomplete="off" placeholder="e.g. Sliver Overlord">
+    <datalist id="card-names"></datalist>
+    <span class="field-hint">Leave the colours empty and they'll be filled from this card's colour identity.</span>
+  </label>
+
+  {% if deck and deck.id %}
+  <label class="check">
+    <input type="checkbox" name="archived" value="1" {% if f.archived %}checked{% endif %}>
+    Retired (hidden from the deck list and the log form)
+  </label>
+  {% endif %}
+
+  <div class="form-actions">
+    <button class="btn btn-primary">Save deck</button>
+    <a class="btn btn-ghost" href="{{ url_for('tracker.deck', did=deck.id) if deck and deck.id else url_for('tracker.decks') }}">Cancel</a>
+  </div>
+</form>
+
+{% if deck and deck.id %}
+<form method="post" action="{{ url_for('tracker.delete_deck', did=deck.id) }}" class="danger-zone" data-confirm="Delete {{ deck.name }}? Its games stay, without a deck recorded.">
+  <button class="btn btn-danger">Delete deck</button>
+</form>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+<script>
+  (function () {
+    const input = document.getElementById("key-card");
+    const list = document.getElementById("card-names");
+    let timer;
+    input.addEventListener("input", () => {
+      clearTimeout(timer);
+      const q = input.value.trim();
+      if (q.length < 2) return;
+      timer = setTimeout(async () => {
+        try {
+          const res = await fetch(APP_ROOT + "api/cards?q=" + encodeURIComponent(q));
+          const names = await res.json();
+          list.replaceChildren(...names.map(n => Object.assign(document.createElement("option"), { value: n })));
+        } catch (e) { /* offline: just no suggestions */ }
+      }, 250);
+    });
+  })();
+</script>
+{% endblock %}

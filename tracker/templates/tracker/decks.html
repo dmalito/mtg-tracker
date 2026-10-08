@@ -1,0 +1,40 @@
+{% extends "tracker/base.html" %}
+{% from "tracker/_macros.html" import pips, deck_art, fmt_badge, record with context %}
+{% block title %}Decks{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Decks</h1>
+  <div class="head-actions">
+    {% set archived = decks|selectattr('archived')|list %}
+    {% if archived %}
+      {% if show_archived %}<a class="btn btn-ghost" href="{{ url_for('tracker.decks') }}">Hide retired</a>
+      {% else %}<a class="btn btn-ghost" href="{{ url_for('tracker.decks', archived=1) }}">Show retired ({{ archived|length }})</a>{% endif %}
+    {% endif %}
+    {% if can_edit %}<a class="btn" href="{{ url_for('tracker.deck_form') }}">+ New deck</a>{% endif %}
+  </div>
+</div>
+
+{% set shown = decks if show_archived else decks|rejectattr('archived')|list %}
+{% if shown %}
+<ul class="deck-grid">
+  {% for d in shown %}
+  <li>
+    <a class="deck-tile{% if d.archived %} retired{% endif %}" href="{{ url_for('tracker.deck', did=d.id) }}">
+      {{ deck_art(d) }}
+      <span class="deck-tile-body">
+        <span class="deck-tile-name">{{ d.name }}</span>
+        <span class="deck-tile-meta">{{ pips(d.colors, 'sm') }} {{ fmt_badge(d.fmt) }}{% if d.owner %} <span class="muted">· {{ d.owner }}</span>{% endif %}</span>
+        {% for fmt, e in (ratings.get(d.id) or {}).items() %}
+        <span class="deck-tile-stats"><b>{{ e.rating|rating }}</b> {{ record(e) }}{% if (ratings.get(d.id)|length) > 1 %} <span class="muted">{{ FORMATS[fmt] }}</span>{% endif %}</span>
+        {% else %}
+        <span class="deck-tile-stats muted">Unplayed</span>
+        {% endfor %}
+      </span>
+    </a>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<section class="panel empty"><p>No decks yet.</p></section>
+{% endif %}
+{% endblock %}

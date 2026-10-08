@@ -1,0 +1,34 @@
+{% extends "tracker/base.html" %}
+{% from "tracker/_macros.html" import record with context %}
+{% block title %}Players{% endblock %}
+{% block content %}
+<div class="page-head"><h1>Players</h1></div>
+
+{% for fmt, board in boards.items() %}
+<section class="panel">
+  <h2 class="panel-title">{{ FORMATS[fmt] }}</h2>
+  <ul class="player-list">
+    {% for e in board %}
+    <li>
+      <a class="player-row" href="{{ url_for('tracker.player', pid=e.id) }}">
+        <span class="avatar" aria-hidden="true">{{ e.name[:1]|upper }}</span>
+        <span class="player-name">{{ e.name }}</span>
+        <span class="player-spark hide-sm">{{ sparkline(e.series[-20:]) }}</span>
+        <span class="player-rating">{{ e.rating|rating }}</span>
+        <span class="player-record">{{ record(e) }} <span class="muted">· {{ e.games }} game{{ 's' if e.games != 1 }}</span></span>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% else %}
+<section class="panel empty"><p>No players yet. They're added when you log a game.</p></section>
+{% endfor %}
+
+{% if idle %}
+<section class="panel">
+  <h2 class="panel-title">No games yet</h2>
+  <ul class="chips">{% for p in idle %}<li><a class="chip" href="{{ url_for('tracker.player', pid=p.id) }}">{{ p.name }}</a></li>{% endfor %}</ul>
+</section>
+{% endif %}
+{% endblock %}

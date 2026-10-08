@@ -1,0 +1,80 @@
+{% extends "tracker/base.html" %}
+{% from "tracker/_macros.html" import pips, deck_art, fmt_badge, record, game_card with context %}
+{% block title %}{{ deck.name }}{% endblock %}
+{% block content %}
+{% if notice %}<p class="notice" role="status">{{ notice }}</p>{% endif %}
+
+<section class="deck-hero">
+  {{ deck_art(deck, 'art-hero') }}
+  <div class="deck-hero-text">
+    <h1>{{ deck.name }}</h1>
+    <p class="deck-hero-meta">
+      {{ pips(deck.colors) }} {{ fmt_badge(deck.fmt) }}
+      {% if deck.owner %}<span>· <a href="{{ url_for('tracker.player', pid=deck.owner_id) }}">{{ deck.owner }}</a>'s deck</span>{% endif %}
+      {% if deck.archived %}<span class="badge">Retired</span>{% endif %}
+    </p>
+    {% if deck.key_card %}
+    <p class="muted small">{{ 'Commander' if deck.fmt == 'cmd' else 'Key card' }}: {{ deck.key_card }}{% if deck.art_artist %} · art by {{ deck.art_artist }}{% endif %}</p>
+    {% endif %}
+  </div>
+  {% if can_edit %}<a class="btn btn-ghost deck-hero-edit" href="{{ url_for('tracker.deck_form', did=deck.id) }}">Edit</a>{% endif %}
+</section>
+
+{% for s in sections %}
+<section class="fmt-section">
+  {% if sections|length > 1 %}<h2 class="section-title">{{ fmt_badge(s.fmt) }}</h2>{% endif %}
+  <div class="stat-row">
+    <div class="stat"><span class="stat-label">Deck rating</span><span class="stat-value">{{ s.entry.rating|rating }}</span></div>
+    <div class="stat"><span class="stat-label">Record</span><span class="stat-value">{{ record(s.entry) }}</span></div>
+    <div class="stat"><span class="stat-label">Win rate</span><span class="stat-value">{{ s.entry.win_pct }}%</span></div>
+    <div class="stat"><span class="stat-label">Games</span><span class="stat-value">{{ s.entry.games }}</span></div>
+  </div>
+  <div class="panel">
+    <h3 class="panel-title">Deck rating over time</h3>
+    {{ s.chart }}
+  </div>
+  <div class="grid-2">
+    <div class="panel">
+      <h3 class="panel-title">Matchups</h3>
+      <table class="board">
+        <thead><tr><th>Against</th><th class="num">Record</th><th class="num">Score</th></tr></thead>
+        <tbody>
+        {% for o in s.opponents %}
+          <tr>
+            <td><a href="{{ url_for('tracker.deck', did=o.id) }}">{{ o.name }}</a></td>
+            <td class="num">{{ record(o) }}</td>
+            <td class="num"><span class="pct" style="--p: {{ o.pct }}">{{ o.pct }}%</span></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="panel">
+      <h3 class="panel-title">Pilots</h3>
+      <table class="board">
+        <thead><tr><th>Player</th><th class="num">Games</th><th class="num">Record</th></tr></thead>
+        <tbody>
+        {% for p in s.pilots %}
+          <tr>
+            <td><a href="{{ url_for('tracker.player', pid=p.id) }}">{{ p.name }}</a></td>
+            <td class="num">{{ p.games }}</td>
+            <td class="num">{{ record(p) }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% else %}
+<section class="panel empty"><p>This deck hasn't been played yet.</p></section>
+{% endfor %}
+
+{% if recent %}
+<section>
+  <h2 class="section-title">Recent games</h2>
+  <div class="games">{% for g in recent %}{{ game_card(g) }}{% endfor %}</div>
+  <p><a href="{{ url_for('tracker.history', deck=deck.id) }}">All games with this deck →</a></p>
+</section>
+{% endif %}
+{% endblock %}

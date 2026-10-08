@@ -1,0 +1,62 @@
+{% extends "tracker/base.html" %}
+{% from "tracker/_macros.html" import game_card, record, fmt_tabs with context %}
+{% block content %}
+<div class="page-head">
+  <h1>Standings</h1>
+  {{ fmt_tabs('tracker.home', fmt, formats) }}
+</div>
+
+{% if not board %}
+<section class="panel empty">
+  <p>No {{ FORMATS[fmt] }} games yet.</p>
+  {% if can_edit %}<a class="btn btn-primary" href="{{ url_for('tracker.log') }}">Log the first one</a>{% endif %}
+</section>
+{% else %}
+<div class="grid-2">
+  <section class="panel">
+    <h2 class="panel-title">Players <span class="muted">· {{ total }} game{{ 's' if total != 1 }}</span></h2>
+    <table class="board">
+      <thead><tr><th>#</th><th>Player</th><th class="num">Rating</th><th class="hide-sm">Trend</th><th class="num">Record</th><th class="num hide-sm">Win %</th></tr></thead>
+      <tbody>
+      {% for e in board %}
+        <tr>
+          <td class="rank">{{ loop.index }}</td>
+          <td><a href="{{ url_for('tracker.player', pid=e.id) }}">{{ e.name }}</a></td>
+          <td class="num rating-cell">{{ e.rating|rating }}</td>
+          <td class="hide-sm">{{ sparkline(e.series[-20:]) }}</td>
+          <td class="num">{{ record(e) }}</td>
+          <td class="num hide-sm">{{ e.win_pct }}%</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <h2 class="panel-title">Top decks</h2>
+    <table class="board">
+      <thead><tr><th>#</th><th>Deck</th><th class="num">Rating</th><th class="num">Record</th></tr></thead>
+      <tbody>
+      {% for e in deck_board %}
+        <tr>
+          <td class="rank">{{ loop.index }}</td>
+          <td><a href="{{ url_for('tracker.deck', did=e.id) }}">{{ e.name }}</a></td>
+          <td class="num rating-cell">{{ e.rating|rating }}</td>
+          <td class="num">{{ record(e) }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <p class="panel-foot"><a href="{{ url_for('tracker.decks') }}">All decks →</a></p>
+  </section>
+</div>
+
+<section>
+  <h2 class="section-title">Recent games</h2>
+  <div class="games">
+    {% for g in recent %}{{ game_card(g, show_fmt=false) }}{% endfor %}
+  </div>
+  <p><a href="{{ url_for('tracker.history', fmt=fmt) }}">Full history →</a></p>
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,55 @@
+{% macro pips(colors, size='') -%}
+<span class="pips {{ size }}">{% for c in colors %}<i class="pip pip-{{ c }}" title="{{ {'W':'White','U':'Blue','B':'Black','R':'Red','G':'Green','C':'Colorless'}[c] }}"></i>{% endfor %}</span>
+{%- endmacro %}
+
+{% macro fmt_badge(fmt) -%}
+<span class="badge badge-{{ fmt }}">{{ DECK_FORMATS[fmt] }}</span>
+{%- endmacro %}
+
+{% macro record(e) -%}
+<span class="record"><b class="w">{{ e.W }}</b>–<b class="l">{{ e.L }}</b>{% if e.D %}–<b class="d">{{ e.D }}</b>{% endif %}</span>
+{%- endmacro %}
+
+{% macro game_card(g, show_fmt=true) -%}
+<article class="game{% if g.draw %} is-draw{% endif %}" id="g{{ g.id }}">
+  <header class="game-head">
+    <time datetime="{{ g.date }}">{{ g.date|nicedate }}</time>
+    {% if show_fmt %}{{ fmt_badge(g.fmt) }}{% endif %}
+    {% if g.mode == 'bon' %}<span class="badge">Match</span>{% endif %}
+    {% if g.seats|length > 2 %}<span class="badge">{{ g.seats|length }}-player pod</span>{% endif %}
+    {% if g.draw %}<span class="badge badge-draw">Draw</span>{% endif %}
+    {% if can_edit %}<a class="game-edit" href="{{ url_for('tracker.edit_game', gid=g.id) }}" aria-label="Edit game">Edit</a>{% endif %}
+  </header>
+  <ol class="seats">
+    {% for s in g.seats %}
+    <li class="seat{% if s.placement == 1 and not g.draw %} won{% endif %}">
+      <span class="place" aria-label="Placement">{% if g.draw %}={% elif s.placement == 1 %}<svg viewBox="0 0 24 24" width="16" height="16" aria-label="Winner"><path fill="currentColor" d="M3 7l4.5 4L12 4l4.5 7L21 7l-2 11H5z"/></svg>{% else %}{{ s.placement }}{% endif %}</span>
+      <span class="who">
+        <a class="pname" href="{{ url_for('tracker.player', pid=s.player_id) }}">{{ s.player }}</a>
+        {% if s.deck %}<a class="dname" href="{{ url_for('tracker.deck', did=s.deck_id) }}">{{ pips(s.deck_colors, 'sm') }}{{ s.deck }}</a>{% endif %}
+      </span>
+      {% if s.score is not none %}<span class="score">{{ s.score }}</span>{% endif %}
+      {% if s.elo_after is not none %}
+      {% set d = (s.elo_after|round) - (s.elo_before|round) %}
+      <span class="delta {{ 'up' if d > 0 else ('down' if d < 0 else '') }}" title="Rating {{ s.elo_before|rating }} → {{ s.elo_after|rating }}">{{ d|signed }}</span>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ol>
+  {% if g.notes %}<p class="game-notes">{{ g.notes }}</p>{% endif %}
+</article>
+{%- endmacro %}
+
+{% macro fmt_tabs(endpoint, fmt, formats) -%}
+<div class="seg" role="tablist" aria-label="Format">
+  {% for f, label in FORMATS.items() %}
+  <a role="tab" href="{{ url_for(endpoint, fmt=f) }}" {% if f == fmt %}aria-selected="true"{% endif %}>{{ label }}</a>
+  {% endfor %}
+</div>
+{%- endmacro %}
+
+{% macro deck_art(d, cls='') -%}
+<span class="art {{ cls }}{% if not d.art_file %} art-blank{% endif %}" style="--c1: var(--mana-{{ (d.colors or ['C'])[0] }}); --c2: var(--mana-{{ (d.colors or ['C'])[-1] }})">
+  {% if d.art_file %}<img src="{{ url_for('tracker.art', fname=d.art_file) }}" alt="" loading="lazy">{% endif %}
+</span>
+{%- endmacro %}
